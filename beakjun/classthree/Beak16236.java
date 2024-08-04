@@ -99,6 +99,7 @@ public class Beak16236 {
 
             }
         }
+
         public List<List<Boolean>> refreshVisit(int size){
             List<List<Boolean>> visits = new ArrayList<>();
             for (int i = 0; i < size; i++) {
