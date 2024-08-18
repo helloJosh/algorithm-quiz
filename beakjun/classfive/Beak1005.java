@@ -3,9 +3,7 @@ package classfive;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Beak1005 {
     public static class Matrix {
@@ -29,6 +27,8 @@ public class Beak1005 {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         int t = Integer.parseInt(br.readLine());
+        Map<String, Integer> map = new HashMap<>();
+        map.values().stream().toList();
 
         for (int i = 0; i < t; i++) {
             StringTokenizer st = new StringTokenizer(br.readLine());
@@ -43,7 +43,7 @@ public class Beak1005 {
             for (int j = 0; j < n; j++) {
                 arrays.add(Integer.parseInt(st.nextToken()));
             }
-
+            
             for (int j = 0; j < k; j++) {
                 st = new StringTokenizer(br.readLine());
                 matrix.addEdge(Integer.parseInt(st.nextToken()) - 1, Integer.parseInt(st.nextToken()) - 1);
