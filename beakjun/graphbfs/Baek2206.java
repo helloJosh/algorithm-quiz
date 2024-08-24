@@ -53,10 +53,6 @@ public class Baek2206 {
         int val1 = counts.get(1).get(n - 1).get(m - 1);
         int val2 = counts.get(0).get(n - 1).get(m - 1);
 
-        System.out.println(val1);
-        System.out.println(val2);
-
-        System.out.println(counts);
         if ( val1 == -1 && val2 == -1) {
             System.out.println(-1);
         } else {
