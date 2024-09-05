@@ -6,88 +6,87 @@ import java.io.InputStreamReader;
 import java.util.*;
 
 public class treecolor {
+    static final int MAX_ID = 100005;
+    static final int MAX_DEPTH = 105;
+    static final int COLOR_MAX = 5;
+
     public static class Node {
-        int id;
-        int color;
-        int maxDepth;
-        Node parent;
-        List<Node> children;
+        int id = 0;
+        int color = 0;
+        int lastUpdate = 0;
+        int maxDepth = 0;
+        int parentId = 0;
+        List<Integer> childIds = new ArrayList<>();
+    }
+    static class ColorCount {
+        int[] cnt = new int[COLOR_MAX + 1];
+        ColorCount add(ColorCount obj) {
+            ColorCount res = new ColorCount();
+            for (int i = 1; i <= COLOR_MAX; i++) {
+                res.cnt[i] = this.cnt[i] + obj.cnt[i];
+            }
+            return res;
+        }
 
-        public Node(int id, int color, int maxDepth) {
-            this.id = id;
-            this.color = color;
-            this.maxDepth = maxDepth;
-            this.children = new ArrayList<>();
+        int score() {
+            int result = 0;
+            for (int i = 1; i <= COLOR_MAX; i++) {
+                if (this.cnt[i] > 0) result++;
+            }
+            return result * result;
         }
     }
-    public static class Tree {
-        private Map<Integer, Node> nodes = new HashMap<>();
 
-        public void addNode(int mId, int pId, int color, int maxDepth) {
-            if (pId == -1) {
-                Node node = new Node(mId, color, maxDepth);
-                nodes.put(mId, node);
-            } else {
-                Node parent = nodes.get(pId);
-                if (Objects.isNull(parent)) {
-                    return;
-                }
-                if (getDepth(parent) < parent.maxDepth) {
-                    Node node = new Node(mId, color, maxDepth);
+    static Node[] nodes = new Node[MAX_ID];
+    static boolean[] isRoot = new boolean[MAX_ID];
 
-                    node.parent = parent;
-                    node.children.add(node);
-                    nodes.put(mId, node);
-                }
-            }
-        }
-
-        public int getDepth(Node node) {
-            if (node == null) return 0;
-            int depth = 1;
-            for (Node child : node.children) {
-                depth = Math.max(depth, 1 + getDepth(child));
-            }
-            return depth;
-        }
-
-        public void changeColor(int mId, int color) {
-            Node node = nodes.get(mId);
-            if (node != null) {
-                recursiveColor(node, color);
-            }
-        }
-        public void recursiveColor(Node node, int color){
-            node.color = color;
-            for (Node temp : node.children) {
-                recursiveColor(temp, color);
-            }
-        }
-        public int getColor(int mId) {
-            Node node = nodes.get(mId);
-            return node.color;
-        }
-        public int calculateScore() {
-            int score = 0;
-            for (Node node : nodes.values()) {
-                Set<Integer> colors = new HashSet<>();
-                recursiveScore(node, colors);
-                score += colors.size() * colors.size();
-            }
-            return  score;
-        }
-        public void recursiveScore(Node node, Set<Integer> colors) {
-            colors.add(node.color);
-            for (Node child : node.children) {
-                recursiveScore(child, colors);
-            }
+    static {
+        for (int i = 0; i < MAX_ID; i++) {
+            nodes[i] = new Node();
         }
     }
+
+    static boolean canMakeChild(Node cur, int needDepth) {
+        if (cur.id == 0)
+            return true;
+        if (cur.maxDepth <= needDepth)
+            return false;
+        return canMakeChild(nodes[cur.parentId], needDepth + 1);
+    }
+
+    static int[] getColor(Node cur) {
+        if (cur.id == 0) {
+            return new int[] {0 , 0};
+        }
+        int[] info = getColor(nodes[cur.parentId]);
+        if (info[1] > cur.lastUpdate) {
+            return info;
+        } else {
+            return new int[] {cur.color, cur.lastUpdate};
+        }
+    }
+    static Object[] getBeauty(Node curr, int color, int lastUpdate) {
+        if (lastUpdate < curr.lastUpdate) {
+            lastUpdate = curr.lastUpdate;
+            color = curr.color;
+        }
+        int result = 0;
+        ColorCount colorCount = new ColorCount();
+        colorCount.cnt[color] = 1;
+        for (int childId : curr.childIds) {
+            Node child = nodes[childId];
+            Object[] subResult = getBeauty(child, color, lastUpdate);
+            colorCount = colorCount.add((ColorCount) subResult[1]);
+            result += (Integer) subResult[0];
+        }
+        result += colorCount.score();
+        return new Object[] { result, colorCount };
+    }
+
     public static void main(String[] args) throws IOException {
-        Tree tree = new Tree();
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         int t = Integer.parseInt(br.readLine());
-        while (t-- > 0) {
+        for (int i = 0; i < t; i++) {
             StringTokenizer st = new StringTokenizer(br.readLine());
 
             int order = Integer.parseInt(st.nextToken());
@@ -96,20 +95,39 @@ public class treecolor {
                 int pId = Integer.parseInt(st.nextToken());
                 int color = Integer.parseInt(st.nextToken());
                 int maxDepth = Integer.parseInt(st.nextToken());
+                if (pId == -1) {
+                    isRoot[pId] = true;
+                }
+                if (isRoot[mId] || canMakeChild(nodes[pId], 1)) {
+                    nodes[mId].id = mId;
+                    nodes[mId].color = color;
+                    nodes[mId].maxDepth = maxDepth;
+                    nodes[mId].parentId = isRoot[mId] ? 0 : pId;
+                    nodes[mId].lastUpdate = i;
+                    if (!isRoot[mId]) {
+                        nodes[pId].childIds.add(mId);
+                    }
+                }
 
-                tree.addNode(mId, pId, color, maxDepth);
 
             } else if (order == 200) {
                 int mId = Integer.parseInt(st.nextToken());
                 int color = Integer.parseInt(st.nextToken());
-                tree.changeColor(mId, color);
+                nodes[mId].color = color;
+                nodes[mId].lastUpdate = i;
             } else if (order == 300) {
                 int mId = Integer.parseInt(st.nextToken());
-                System.out.println(tree.getColor(mId));
+                System.out.println(getColor(nodes[mId])[0]);
             } else if (order == 400) {
-                System.out.println(tree.calculateScore());
+                int beauty = 0;
+                for (int idx = 1; idx < MAX_ID; idx++) {
+                    // root 노드들에 대해 점수를 계산합니다
+                    if (isRoot[idx]) {
+                        beauty += (Integer) getBeauty(nodes[idx], nodes[idx].color, nodes[idx].lastUpdate)[0];
+                    }
+                }
+                System.out.println(beauty);
             }
         }
-
     }
 }
