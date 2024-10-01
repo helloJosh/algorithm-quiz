@@ -1,9 +1,8 @@
 package samsung;
 
-import java.io.*;
 import java.util.*;
 
-public class magicforestsearch {
+public class Magicforestsearch {
     public static final int MAX_L = 70;
 
     public static int r, c, k;

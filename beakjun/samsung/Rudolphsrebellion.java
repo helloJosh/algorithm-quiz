@@ -1,11 +1,9 @@
 package samsung;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 
-public class rudolphsrebellion {
+public class Rudolphsrebellion {
     static final int MAX_N = 51;
     static final int MAX_P = 31;
 

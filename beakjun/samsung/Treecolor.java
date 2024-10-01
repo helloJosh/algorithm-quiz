@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 
-public class treecolor {
+public class Treecolor {
     static final int MAX_ID = 100005;
     static final int MAX_DEPTH = 105;
     static final int COLOR_MAX = 5;
