@@ -68,10 +68,10 @@ public class Acientsearch {
                                 int ny = cur[0] + dy[k];
                                 int nx = cur[1] + dx[k];
 
-                                if (inRange(ny, nx) && !visited[ny][nx] && a[ny][nx] == a[cur[0]][cur[1]]) {
+                                if (inRange(ny, nx) && a[ny][nx] == a[cur[0]][cur[1]] && !visited[ny][nx] ) {
                                     q.offer(new int[]{ny, nx});
                                     trace.offer(new int[]{ny, nx});
-                                    visited[i][j] = true;
+                                    visited[ny][nx] = true;
                                 }
                             }
                         }
@@ -122,7 +122,7 @@ public class Acientsearch {
             int maxScore = 0;
             Board maxBoard = null;
 
-            for (int cnt = 1; cnt < 3; cnt++) {
+            for (int cnt = 1; cnt <= 3; cnt++) {
                 for (int x = 1; x < 4; x++) {
                     for (int y = 1; y < 4; y++) {
                         Board rotated = board.turn(y, x, cnt);
@@ -135,6 +135,7 @@ public class Acientsearch {
                     }
                 }
             }
+            System.out.println(maxScore);
 
             if (maxBoard == null) {
                 break;
