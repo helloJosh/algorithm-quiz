@@ -1,167 +1,171 @@
 package samsung;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class Rudolphsrebellion {
-    static final int MAX_N = 51;
-    static final int MAX_P = 31;
+    public static final int MAX_N = 51;
+    public static final int MAX_P = 31;
+    public static int n, m, p, c, d;
+    public static Map<Integer, Pair> santas = new HashMap<>();
+    public static boolean[] active = new boolean[MAX_P];
+    public static int[] stun = new int[MAX_P];
+    public static int[][] board = new int[MAX_N][MAX_N];
+    public static Pair rudolph = new Pair(0, 0);
+    static int[] points = new int[MAX_P];
+    static final int[] dy = {1, 0, -1, 0};
+    static final int[] dx = {0, 1, 0, -1};
 
-    static class Pair {
-        int val1, val2;
-        Pair (int val1, int val2) {
-            this.val1 = val1;
-            this.val2 = val2;
+    public static class Pair {
+        int x;
+        int y;
+        public Pair(int y, int x) {
+            this.x = x;
+            this.y = y;
         }
     }
-    static class Tuple implements Comparable<Tuple> {
-        int val1, val2, val3;
-        Tuple (int val1, int val2, int val3) {
-            this.val1 = val1;
-            this.val2 = val2;
-            this.val3 = val3;
+    public static class Tuple implements Comparable<Tuple>{
+        int dist;
+        int y;
+        int x;
+        public Tuple(int dist, int y, int x) {
+            this.dist = dist;
+            this.y = y;
+            this.x = x;
         }
         @Override
         public int compareTo(Tuple o) {
-            if (this.val1 != o.val1) {
-                return Integer.compare(this.val1, o.val1);
+            if (this.dist != o.dist) {
+                return Integer.compare(this.dist, o.dist);
             }
-            if (this.val2 != o.val2) {
-                return Integer.compare(this.val2, o.val2);
+            if (this.y != o.y) {
+                return Integer.compare(this.y, o.y);
             }
-            return Integer.compare(this.val3, o.val3);
+            return Integer.compare(this.x, o.x);
         }
     }
-
-    static int n, m ,p, c, d;
-    static int[] points = new int[MAX_P];
-    static Map<Integer, Pair> pos = new HashMap<>();
-    static Pair rudolph = new Pair(0, 0);
-
-    static int[][] board = new int[MAX_N][MAX_N];
-    static boolean[] isActive = new boolean[MAX_P];
-    static int[] stun = new int[MAX_P];
-
-    static final int[] dx = {-1, 0, 1, 0};
-    static final int[] dy = {0, 1, 0, -1};
-
-    static boolean isInrange(int x, int y) {
-        return 1 <= x && x <= n && 1 <= y && y <= n;
+    public static boolean inRange(int y, int x) {
+        return 1 <= y && y <= n && 1 <= x && x <= n;
     }
 
     public static void main(String[] args) throws IOException {
-        Scanner sc = new Scanner(System.in);
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
 
-        n = sc.nextInt();
-        m = sc.nextInt();
-        p = sc.nextInt();
-        c = sc.nextInt();
-        d = sc.nextInt();
+        n = Integer.parseInt(st.nextToken());
+        m = Integer.parseInt(st.nextToken());
+        p = Integer.parseInt(st.nextToken());
+        c = Integer.parseInt(st.nextToken());
+        d = Integer.parseInt(st.nextToken());
 
-        rudolph.val1 = sc.nextInt();
-        rudolph.val2 = sc.nextInt();
-        board[rudolph.val1][rudolph.val2] = -1;
+        st = new StringTokenizer(br.readLine());
+        rudolph = new Pair(Integer.parseInt(st.nextToken()), Integer.parseInt(st.nextToken()));
+        board[rudolph.y][rudolph.x] = - 1;
 
-        for (int i = 1; i <= p; i++) {
-            int id = sc.nextInt();
-            int x = sc.nextInt();
-            int y = sc.nextInt();
-
-            pos.put(id , new Pair(x, y));
-
-            board[x][y] = id;
-            isActive[id] = true;
+        for (int i = 0; i < p ; i++) {
+            st = new StringTokenizer(br.readLine());
+            int id = Integer.parseInt(st.nextToken());
+            int sy = Integer.parseInt(st.nextToken());
+            int sx = Integer.parseInt(st.nextToken());
+            santas.put(id, new Pair(sy, sx));
+            board[sy][sx] = id;
+            active[id] = true;
         }
 
-        for(int t = 1; t <= m; t++) {
-            int closestX = 100000;
-            int closestY = 100000;
+        for (int t = 0; t <= m ; t++) {
+            int closestX = Integer.MAX_VALUE;
+            int closestY = Integer.MAX_VALUE;
             int closestId = 0;
 
-            for (int i = 1; i <= p; i++) {
-                if (!isActive[i]) {
-                    continue;
-                }
+            for (int i = 1; i < p; i++) {
+                if(active[i]) continue;
 
-                Tuple currentBest = new Tuple((closestX - rudolph.val1) * (closestX - rudolph.val1) + (closestY - rudolph.val2) * (closestY - rudolph.val2), -closestX, -closestY);
-                Tuple currentValue = new Tuple((pos.get(i).val1 - rudolph.val1) * (pos.get(i).val1 - rudolph.val1) + (pos.get(i).val2 - rudolph.val2) * (pos.get(i).val2 - rudolph.val2), -pos.get(i).val1, -pos.get(i).val2);
+                Pair cur = santas.get(i);
+                Tuple currentBest = new Tuple((closestY - rudolph.y) * (closestY - rudolph.y) + (closestX - rudolph.x) * (closestX - rudolph.x), -closestY, -closestX);
+                Tuple currentValue = new Tuple((cur.y - rudolph.y) * (cur.y - rudolph.y) + (cur.x - rudolph.x) * (cur.x - rudolph.x), -cur.y, -cur.x);
 
-                if (currentValue.compareTo(currentBest) < 0) {
-                    closestX = pos.get(i).val1;
-                    closestY = pos.get(i).val2;
+                if(currentValue.compareTo(currentBest) < 0) {
+                    closestY = cur.y;
+                    closestX = cur.x;
                     closestId = i;
                 }
             }
 
             if (closestId != 0) {
-                Pair prevRudolph = new Pair(rudolph.val1, rudolph.val2);
-                int moveX = 0;
-                if (closestX > rudolph.val1) moveX = 1;
-                else if(closestX < rudolph.val1) moveX = -1;
+                Pair prevR = new Pair(rudolph.y, rudolph.x);
 
-                int moveY = 0;
-                if (closestY > rudolph.val2) moveY = 1;
-                else if(closestY < rudolph.val2) moveY = -1;
+                int dy = 0;
+                if (closestY > rudolph.y) dy = 1;
+                else if (closestY < rudolph.y) dy = -1;
 
-                rudolph.val1 += moveX;
-                rudolph.val2 += moveY;
-                board[prevRudolph.val1][prevRudolph.val2] = 0;
+                int dx = 0;
+                if (closestX > rudolph.x) dx = 1;
+                else if (closestX < rudolph.x) dx = -1;
 
-                if (rudolph.val1 == closestX && rudolph.val2 == closestY) {
-                    int firstX = closestX + moveX * c;
-                    int firstY = closestY + moveY * c;
-                    int lastX = firstX;
-                    int lastY = firstY;
+                rudolph.y += dy;
+                rudolph.x += dx;
+                board[prevR.y][prevR.x] = 0 ;
+
+                if (rudolph.y == closestY && rudolph.x == closestX) {
+                    int ny = closestY + dy * c;
+                    int nx = closestX + dx * c;
+                    int finaly = ny;
+                    int finalx = nx;
 
                     stun[closestId] = t + 1;
 
-                    while (isInrange(lastX, lastY) && board[lastX][lastY] > 0) {
-                        lastX += moveX;
-                        lastY += moveY;
+                    while (inRange(finaly, finalx) && board[finaly][finalx] > 0) {
+                        finaly += dy;
+                        finalx += dx;
                     }
 
-                    while (!(lastX == firstX && lastY == firstY)) {
-                        int beforeX = lastX - moveX;
-                        int beforeY = lastY - moveY;
+                    while ( !(finaly == ny && finalx == nx)) {
+                        int prevY = finaly - dy;
+                        int prevX = finalx - dx;
 
-                        if (!isInrange(beforeX, beforeY)) break;
+                        if (!inRange(prevY, prevX)) break;
 
-                        int id = board[beforeX][beforeY];
+                        int id = board[prevY][prevX];
 
-                        if (!isInrange(lastX, lastY)) {
-                            isActive[id] = false;
+                        if (!inRange(finaly, finalx)) {
+                            active[id] = false;
                         } else {
-                            board[lastX][lastY] = board[beforeX][beforeY];
-                            pos.put(id, new Pair(lastX, lastY));
+                            board[finaly][finalx] = board[prevY][prevX];
+                            santas.put(id, new Pair(finaly, finalx));
                         }
-                        lastX = beforeX;
-                        lastY = beforeY;
+
+                        finaly = prevY;
+                        finalx = prevX;
                     }
 
                     points[closestId] += c;
-                    pos.put(closestId, new Pair(firstX, firstY));
-                    if (isInrange(firstX, firstY)) {
-                        board[firstX][firstY] = closestId;
+                    santas.put(closestId, new Pair(ny, nx));
+                    if (inRange(ny, nx)) {
+                        board[ny][nx] = closestId;
                     } else {
-                        isActive[closestId] = false;
+                        active[closestId] = false;
                     }
                 }
             }
 
-            board[rudolph.val1][rudolph.val2] = -1;
+            board[rudolph.y][rudolph.x] = -1;
 
             for (int i = 1; i <= p; i++) {
-                if (!isActive[i] || stun[i] >= t) continue;
-                int minDist = (pos.get(i).val1 - rudolph.val1) * (pos.get(i).val1 - rudolph.val1) + (pos.get(i).val2 - rudolph.val2) * (pos.get(i).val2 - rudolph.val2);
+                if (!active[i] || stun[i] >= t) continue;
+
+                Pair cur = santas.get(i);
+
+                int minDist = (cur.y - rudolph.y) * (cur.y - rudolph.y) + (cur.x - rudolph.x) * (cur.x - rudolph.x);
                 int moveDir = -1;
 
                 for (int dir = 0; dir < 4; dir++) {
-                    int nx = pos.get(i).val1 + dx[dir];
-                    int ny = pos.get(i).val2 + dy[dir];
+                    int ny = cur.y + dy[dir];
+                    int nx = cur.x + dx[dir];
 
-                    if (!isInrange(nx, ny) || board[nx][ny] > 0) continue;
+                    if (!inRange(ny, nx) && board[ny][nx] > 0) continue;
 
-                    int dist = (nx - rudolph.val1) * (nx - rudolph.val1) + (ny - rudolph.val2) * (ny - rudolph.val2);
+                    int dist = (ny - rudolph.y) * (ny - rudolph.y) + (nx - rudolph.x) * (nx - rudolph.x);
+
                     if (dist < minDist) {
                         minDist = dist;
                         moveDir = dir;
@@ -169,10 +173,10 @@ public class Rudolphsrebellion {
                 }
 
                 if (moveDir != -1) {
-                    int nx = pos.get(i).val1 + dx[moveDir];
-                    int ny = pos.get(i).val2 + dy[moveDir];
+                    int ny = cur.y + dy[moveDir];
+                    int nx = cur.x + dx[moveDir];
 
-                    if (nx == rudolph.val1 && ny == rudolph.val2) {
+                    if (nx == rudolph.x && ny == rudolph.y) {
                         stun[i] = t + 1;
 
                         int moveX = -dx[moveDir];
@@ -186,54 +190,54 @@ public class Rudolphsrebellion {
                         if (d == 1) {
                             points[i] += d;
                         } else {
-                            while (isInrange(lastX, lastY) && board[lastX][lastY] > 0) {
+                            while (inRange(lastY, lastX) && board[lastY][lastX] > 0) {
                                 lastX += moveX;
                                 lastY += moveY;
                             }
 
                             while (!(lastX == firstX && lastY == firstY)) {
-                                int beforeX = lastX - moveX;
                                 int beforeY = lastY - moveY;
+                                int beforeX = lastX - moveX;
 
-                                if (!isInrange(beforeX, beforeY)) break;
+                                if (!inRange(beforeY, beforeX)) break;
 
-                                int id = board[beforeX][beforeY];
+                                int id = board[beforeY][beforeX];
 
-                                if (!isInrange(lastX, lastY)) {
-                                    isActive[id] = false;
+                                if (!inRange(lastY, lastX)) {
+                                    active[id] = false;
                                 } else {
-                                    board[lastX][lastY] = board[beforeX][beforeY];
-                                    pos.put(id, new Pair(lastX, lastY));
+                                    board[lastY][lastX] = board[beforeY][beforeX];
+                                    santas.put(id, new Pair(lastY, lastX));
                                 }
 
-                                lastX = beforeX;
                                 lastY = beforeY;
+                                lastX = beforeX;
                             }
 
                             points[i] += d;
-                            board[pos.get(i).val1][pos.get(i).val2] = 0;
-                            pos.put(i, new Pair(firstX, firstY));
-
-                            if (isInrange(firstX, firstY)) {
-                                board[firstX][firstY] = i;
+                            board[cur.y][cur.x] = 0;
+                            santas.put(i, new Pair(firstY, firstX));
+                            if (inRange(firstY, firstX)) {
+                                board[firstY][firstX] = i;
                             } else {
-                                isActive[i] = false;
+                                active[i] = false;
                             }
                         }
                     } else {
-                        board[pos.get(i).val1][pos.get(i).val2] = 0;
-                        pos.put(i, new Pair(nx, ny));
-                        board[nx][ny] = i;
+                        board[cur.y][cur.x] = 0;
+                        santas.put(i, new Pair(ny, nx));
+                        board[ny][nx] = i;
                     }
                 }
             }
-
             for (int i = 1; i <= p; i++) {
-                if (isActive[i]) points[i]++;
+                if (active[i])
+                    points[i]++;
             }
         }
 
         for (int i = 1; i <= p; i++)
             System.out.print(points[i] + " ");
+
     }
 }
